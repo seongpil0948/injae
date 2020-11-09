@@ -1,9 +1,6 @@
 # for INJAE
 
 ## chrome version = 86.0.4240.18
-## python = 3.8
-## conda = 4.9.1
-
 ----
 
 ## 깃발 id = 캠페인 아이디
