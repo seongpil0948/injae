@@ -56,6 +56,7 @@ def css():
         "end_calendar_component": end_day_root + "div",
         "search_btn": '//*[@id="root"]/div/div[1]/div[3]/div[1]/div[1]/div[2]/button',
         "table": table,
+        "dialog_exist_class": "Dialog",
         "dialog_btn": table + '/tbody/tr[{}]/td[5]/a', # row 당 한개.
         "dialog_close_btn": '//*[@id="root"]/div/div[2]/div/form/div[3]/button',
         "dialog_pickup_address": '//*[@id="root"]/div/div[2]/div/form/div[2]/div/div/table[2]/tbody/tr[3]/td',

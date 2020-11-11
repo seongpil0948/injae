@@ -1,7 +1,10 @@
-from os import replace
+from time import sleep
 from assets import get_chrome_driver
 from meta import get_dates, users, css
 from utils import login
+import pandas as pd
+import re
+from os.path import join
 
 from selenium.common.exceptions import (
     TimeoutException, 
@@ -12,12 +15,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup as bs
-import pandas as pd
-import re
-from os.path import join
 
-# TODO: 타입명시 필요 Element 와 Css 구별이 안됌.
 
 class Crawler:
     def __init__(self, user, year="2020", month="06"):
@@ -58,43 +56,45 @@ class Crawler:
     def parsing_table(self, max_page:int=100):
         datas = []
         for _ in list(range(max_page)):
-            WebDriverWait(self.driver, 3).until(
+            table = WebDriverWait(self.driver, 3).until(
                 EC.presence_of_element_located((By.XPATH, self.css['table']))
             )
-            html = self.driver.page_source
-            soup = bs(html, 'html.parser')  
-            table = soup.find('table')
-            rows = table.find_all('tr')
+            sleep(1)
+            rows = table.find_elements_by_tag_name('tr')
             
-            count = 1
-            for row in rows[1:]:
+            for row_num in list(range(1, len(rows))):
+                """ 
+                    0은 헤더이기 때문에 1부터. 다이얼로그 클릭 이벤트로 인해 DOM 이 변경된후에 다시 이전에 사용하던 
+                    Element 변수를 사용하게 되면 StaleElementReferenceException 에러 발생.. 고로 다시 찾아야함.
+                """
                 address = None; dial_no = None
                 try:
-                    dialog_btn = self.driver.find_element_by_xpath(self.css['dialog_btn'].format(count))
+                    dialog_btn = self.driver.find_element_by_xpath(self.css['dialog_btn'].format(row_num))
                     dialog_btn.click()
                     address = self.driver.find_element_by_xpath(self.css['dialog_pickup_address']).text
                     dialog_close_btn = self.driver.find_element_by_xpath(self.css['dialog_close_btn'])
-                    dialog_close_btn.click()
                     dial_no = self.driver.find_element_by_xpath(self.css['dialog_order_no']).text\
                         .replace('배달완료', '').strip()
+                    dialog_close_btn.click()
                 except (NoSuchElementException, StaleElementReferenceException) as e:
-                    print('========================\n')
-                    # print(row)
-                    print(f"{e}")
-                #     pass
-                count += 1
+                    print('========================\n', e)
+                    pass
+                # WebDriverWait(self.driver, 3).until(
+                #     EC.invisibility_of_element((By.CLASS_NAME, self.css['dialog_exist_class']))
+                # )
 
-                cols = row.find_all('td')
+                row = self.driver.find_element_by_xpath(f"{self.css['table']}/tbody/tr[{row_num}]")
+                cols = row.find_elements_by_tag_name('td')
                 data = [
-                    cols[0].text.replace('주문번호배달완료', '').strip(),
-                    cols[1].text.replace('주문시각', '').replace('. ', '-'), 
-                    cols[2].text.replace('광고상품그룹', ''),
-                    cols[3].text.replace('캠페인ID', ''), # 캠페인 ID
-                    cols[4].text.replace('주문내역', ''),  # 주문내역
+                    cols[0].text.replace('배달완료\n', '').strip(), # 주문번호
+                    cols[1].text, # 주문시각
+                    cols[2].text, # 광고상품그룹
+                    cols[3].text, # 캠페인 ID
+                    cols[4].text,  # 주문내역
                     address,
                     int(re.search("\d+", cols[5].text.replace(',', '')).group()), # 결제금액
                 ]
-                assert dial_no == data[0], f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n count: {count}, page: {_}"
+                assert dial_no == data[0], f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n row_num: {row_num}, page: {_ + 1} \n {row.text}"
                 datas.append(data)
             try:
                 e = WebDriverWait(self.driver, 1).until(
@@ -145,10 +145,13 @@ class Crawler:
             self.driver.implicitly_wait(1)
             datas += self.parsing_table()
 
-        df = pd.DataFrame(data=datas, columns=['주문시각', '광고그룹', '캠페인', '주문내역', '픽업주소', '결제금액'])
-        df["주문시각"] = pd.to_datetime(df["주문시각"], format='%y-%m-%d %H:%M:%S')
-        df = df.sort_values(by=['주문시각'], axis=0)
-        df = df.set_index('주문시각', drop=True)
+        df = pd.DataFrame(data=datas, columns=['no', 'date', 'group', 'campaign_id', 'order_info', 'address', 'payment'])
+        try:
+            df["date"] = pd.to_datetime(df["date"], format='%y. %m. %d %H:%M:%S')
+        except ValueError:
+            df["date"] = pd.to_datetime(df["date"], format='%y-%m-%d %H:%M:%S')
+        df = df.sort_values(by=['date'], axis=0)
+        df = df.set_index('date', drop=True)
 
         # FIXME: 어떻게 할건지 결정.
         dir_name = "./datas"
