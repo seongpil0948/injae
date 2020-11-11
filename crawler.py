@@ -1,11 +1,17 @@
+from os import replace
 from assets import get_chrome_driver
 from meta import get_dates, users, css
 from utils import login
 
+from selenium.common.exceptions import (
+    TimeoutException, 
+    ElementNotInteractableException, 
+    NoSuchElementException,
+    StaleElementReferenceException
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, ElementNotInteractableException
 from bs4 import BeautifulSoup as bs
 import pandas as pd
 import re
@@ -59,15 +65,36 @@ class Crawler:
             soup = bs(html, 'html.parser')  
             table = soup.find('table')
             rows = table.find_all('tr')
+            
+            count = 1
             for row in rows[1:]:
+                address = None; dial_no = None
+                try:
+                    dialog_btn = self.driver.find_element_by_xpath(self.css['dialog_btn'].format(count))
+                    dialog_btn.click()
+                    address = self.driver.find_element_by_xpath(self.css['dialog_pickup_address']).text
+                    dialog_close_btn = self.driver.find_element_by_xpath(self.css['dialog_close_btn'])
+                    dialog_close_btn.click()
+                    dial_no = self.driver.find_element_by_xpath(self.css['dialog_order_no']).text\
+                        .replace('배달완료', '').strip()
+                except (NoSuchElementException, StaleElementReferenceException) as e:
+                    print('========================\n')
+                    # print(row)
+                    print(f"{e}")
+                #     pass
+                count += 1
+
                 cols = row.find_all('td')
                 data = [
+                    cols[0].text.replace('주문번호배달완료', '').strip(),
                     cols[1].text.replace('주문시각', '').replace('. ', '-'), 
                     cols[2].text.replace('광고상품그룹', ''),
                     cols[3].text.replace('캠페인ID', ''), # 캠페인 ID
                     cols[4].text.replace('주문내역', ''),  # 주문내역
+                    address,
                     int(re.search("\d+", cols[5].text.replace(',', '')).group()), # 결제금액
                 ]
+                assert dial_no == data[0], f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n count: {count}, page: {_}"
                 datas.append(data)
             try:
                 e = WebDriverWait(self.driver, 1).until(
@@ -118,7 +145,7 @@ class Crawler:
             self.driver.implicitly_wait(1)
             datas += self.parsing_table()
 
-        df = pd.DataFrame(data=datas, columns=['주문시각', '광고그룹', '캠페인', '주문내역', '결제금액'])
+        df = pd.DataFrame(data=datas, columns=['주문시각', '광고그룹', '캠페인', '주문내역', '픽업주소', '결제금액'])
         df["주문시각"] = pd.to_datetime(df["주문시각"], format='%y-%m-%d %H:%M:%S')
         df = df.sort_values(by=['주문시각'], axis=0)
         df = df.set_index('주문시각', drop=True)
