@@ -2,7 +2,7 @@ from calendar import monthrange
 
 def get_dates(year: str, month: str):
     year_int = int(year)
-    month_int = int(month.replace('0', ''))
+    month_int = int(month.replace('0', '')) if len(month) < 2 else int(month)
     return {
         'year_str': year,
         'month_str': month,
@@ -36,7 +36,8 @@ def users():
     return [
         {
             "id": "klm1144",
-            "password": "aa1144aa"
+            "password": "aa1144aa",
+            "business": "아리성"
         }
     ]
 

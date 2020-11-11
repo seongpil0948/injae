@@ -2,10 +2,9 @@ from time import sleep
 from assets import get_chrome_driver
 from meta import get_dates, users, css
 from utils import login
+
 import pandas as pd
 import re
-from os.path import join
-
 from selenium.common.exceptions import (
     TimeoutException, 
     ElementNotInteractableException, 
@@ -18,7 +17,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class Crawler:
-    def __init__(self, user, year="2020", month="06"):
+    def __init__(self, user, year="2020", month="10"):
         self.login_url = "https://ceo.baemin.com/web/login"
         self.redirect_url = "https%3A%2F%2Fceo.baemin.com%2Fself-service/orders/history"
         self.driver = get_chrome_driver()        
@@ -113,6 +112,9 @@ class Crawler:
 
     def go(self):
         login(self.driver, self.login_url, self.redirect_url, self.user)
+
+        # Filtering 나중에 함수로 변경.
+        # Calendar
         start_calendar_btn = WebDriverWait(self.driver, 3).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, self.css["start_calendar_btn"]))
         )
@@ -125,6 +127,19 @@ class Crawler:
             year_int=self.dates['year_int'], 
             month_int=self.dates['month_int']
         )
+        # ETC
+        filter_area = self.driver.find_element_by_class_name('filter-row')
+        filters = filter_area.find_elements_by_tag_name('select')
+        # 상세가계
+        businesses = filters[0].find_elements_by_tag_name('option')
+        list(filter(lambda x: x.text ==self.user['business'], businesses))[0].click()
+        # 배달 완료
+        status = filters[1].find_elements_by_tag_name('option')
+        list(filter(lambda x: x.get_attribute('value') == 'CLOSED', status))[0].click()
+        # 광고 그룹
+        groups = filters[2].find_elements_by_tag_name('option')
+        list(filter(lambda x: x.get_attribute('value') == 'ULTRA_CALL', groups))[0].click()        
+        # ===== Filtering END ========
 
         datas = []
         for date in self.dates['dates']:
@@ -152,14 +167,20 @@ class Crawler:
             df["date"] = pd.to_datetime(df["date"], format='%y-%m-%d %H:%M:%S')
         df = df.sort_values(by=['date'], axis=0)
         df = df.set_index('date', drop=True)
-
-        # FIXME: 어떻게 할건지 결정.
-        dir_name = "./datas"
-        file_name = f"{self.user['id']}__dataframe.csv"
-        df.to_csv(join(dir_name, file_name))
+        df.to_csv(f"./datas/{self.dates['year_str']}-{self.dates['month_str']}__{self.user['id']}__dataframe.csv")
         self.driver.close()
+        
+        return df
 
 if __name__ == "__main__":
     users = users()
-    c = Crawler(user=users[0])
-    c.go()
+    user = users[0]
+    curr_year = "2020"
+    curr_month = "11"
+    compare_year = "2020"
+    compare_month = "10"
+    c = Crawler(user=user, year=curr_year, month=curr_month)
+    df = c.go()
+    c2 = Crawler(user=user, year=compare_year, month=compare_month)
+    df2 = c2.go()
+    # TODO: 증가량 검사
