@@ -4,12 +4,13 @@ from meta import get_dates, users, css
 from utils import login
 
 import pandas as pd
-import re
+import re, json, os
 from selenium.common.exceptions import (
     TimeoutException, 
     ElementNotInteractableException, 
     NoSuchElementException,
-    StaleElementReferenceException
+    StaleElementReferenceException,
+    ElementClickInterceptedException
 )
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -17,13 +18,18 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class Crawler:
-    def __init__(self, user, year="2020", month="10"):
+    def __init__(self, user, year="2020", month="10", req_advertise_info=False):
         self.login_url = "https://ceo.baemin.com/web/login"
         self.redirect_url = "https%3A%2F%2Fceo.baemin.com%2Fself-service/orders/history"
         self.driver = get_chrome_driver()        
         self.dates = get_dates(year, month)
+        self.dir_path = f"./datas/{self.dates['year_str']}-{self.dates['month_str']}"
         self.user = user
         self.css = css()
+        self.req_advertise_info = req_advertise_info
+
+        if os.path.isdir(self.dir_path) == False:
+            os.makedirs(self.dir_path)
 
     @staticmethod
     def click_day_in_calendar(driver, calendar_btn, day_root, click_date):
@@ -55,10 +61,15 @@ class Crawler:
     def parsing_table(self, max_page:int=100):
         datas = []
         for _ in list(range(max_page)):
-            table = WebDriverWait(self.driver, 3).until(
-                EC.presence_of_element_located((By.XPATH, self.css['table']))
-            )
             sleep(1)
+            table = None
+            try:
+                table = self.driver.find_element_by_xpath(self.css['table'])
+            except NoSuchElementException:
+                if _ == 0: # no data~~
+                    break
+                else:
+                    raise NoSuchElementException
             rows = table.find_elements_by_tag_name('tr')
             
             for row_num in list(range(1, len(rows))):
@@ -68,7 +79,8 @@ class Crawler:
                 """
                 address = None; dial_no = None
                 try:
-                    dialog_btn = self.driver.find_element_by_xpath(self.css['dialog_btn'].format(row_num))
+                    
+                    dialog_btn = WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, self.css['dialog_btn'].format(row_num))))                    
                     dialog_btn.click()
                     address = self.driver.find_element_by_xpath(self.css['dialog_pickup_address']).text
                     dialog_close_btn = self.driver.find_element_by_xpath(self.css['dialog_close_btn'])
@@ -78,9 +90,6 @@ class Crawler:
                 except (NoSuchElementException, StaleElementReferenceException) as e:
                     print('========================\n', e)
                     pass
-                # WebDriverWait(self.driver, 3).until(
-                #     EC.invisibility_of_element((By.CLASS_NAME, self.css['dialog_exist_class']))
-                # )
 
                 row = self.driver.find_element_by_xpath(f"{self.css['table']}/tbody/tr[{row_num}]")
                 cols = row.find_elements_by_tag_name('td')
@@ -110,15 +119,9 @@ class Crawler:
                 break
         return datas
 
-    def go(self):
-        login(self.driver, self.login_url, self.redirect_url, self.user)
-
-        # Filtering 나중에 함수로 변경.
+    def filtering(self):
         # Calendar
-        start_calendar_btn = WebDriverWait(self.driver, 3).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, self.css["start_calendar_btn"]))
-        )
-        end_calendar_btn = self.driver.find_element_by_css_selector(self.css["end_calendar_btn"])
+        start_calendar_btn = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.css["start_calendar_btn"])))
         # Open Calendar
         start_calendar_btn.click()
         start_calendar_component = self.driver.find_element_by_css_selector(self.css['start_calendar_component'])
@@ -131,16 +134,18 @@ class Crawler:
         filter_area = self.driver.find_element_by_class_name('filter-row')
         filters = filter_area.find_elements_by_tag_name('select')
         # 상세가계
-        businesses = filters[0].find_elements_by_tag_name('option')
-        list(filter(lambda x: x.text ==self.user['business'], businesses))[0].click()
+        shops = filters[0].find_elements_by_tag_name('option')
+        list(filter(lambda x: x.text ==self.user['shop'], shops))[0].click()
         # 배달 완료
         status = filters[1].find_elements_by_tag_name('option')
         list(filter(lambda x: x.get_attribute('value') == 'CLOSED', status))[0].click()
         # 광고 그룹
         groups = filters[2].find_elements_by_tag_name('option')
-        list(filter(lambda x: x.get_attribute('value') == 'ULTRA_CALL', groups))[0].click()        
-        # ===== Filtering END ========
-
+        list(filter(lambda x: x.get_attribute('value') == 'ULTRA_CALL', groups))[0].click()
+    
+    def collect_data(self):
+        start_calendar_btn = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.css["start_calendar_btn"])))
+        end_calendar_btn = self.driver.find_element_by_css_selector(self.css["end_calendar_btn"])        
         datas = []
         for date in self.dates['dates']:
             # 날짜 1~7, 8 ~14 ... 순으로 데이터 수집
@@ -159,17 +164,54 @@ class Crawler:
             self.driver.find_element_by_xpath(self.css["search_btn"]).click()
             self.driver.implicitly_wait(1)
             datas += self.parsing_table()
-
         df = pd.DataFrame(data=datas, columns=['no', 'date', 'group', 'campaign_id', 'order_info', 'address', 'payment'])
+        return df
+
+    def advertise_traverse(self):
+        """
+            Prerequisite Required Login
+        """
+        try:
+            self.driver.find_element_by_xpath(self.css['drawer_btn']).click()
+            WebDriverWait(self.driver, 2).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.css['advertise_management_btn']))).click()
+        except ElementNotInteractableException:
+            # 이미 메뉴가 열려있음.
+            self.driver.find_element_by_css_selector(self.css['advertise_management_btn2']).click()
+            pass
+        self.driver.implicitly_wait(1)
+
+        shops = self.driver.find_elements_by_css_selector('div.ShopSelect > select > option')
+        list(filter(lambda x: x.text == self.user['shop'], shops))[0].click()
+
+        cards = self.driver.find_elements_by_class_name('Card')
+        card = list(filter(lambda card: '울트라콜' in card.find_element_by_class_name('card-header').text, cards))[0]
+        table = card.find_element_by_tag_name('tbody')
+        rows = table.find_elements_by_tag_name('tr')
+        datas = {}
+        for row in rows:
+            cols = row.find_elements_by_tag_name('td')
+            campaign_id = re.search('\d+', cols[0].text).group()
+            address = cols[2].text.replace('노출위치', '')
+            datas[campaign_id] = address
+        
+        with open(f"{self.dir_path}/adv_info.json", 'w') as f:
+            json.dump(datas, f)
+
+
+    def go(self):
+        login(self.driver, self.login_url, self.redirect_url, self.user)
+        self.filtering()
+        df = self.collect_data()
         try:
             df["date"] = pd.to_datetime(df["date"], format='%y. %m. %d %H:%M:%S')
         except ValueError:
             df["date"] = pd.to_datetime(df["date"], format='%y-%m-%d %H:%M:%S')
         df = df.sort_values(by=['date'], axis=0)
-        df = df.set_index('date', drop=True)
-        df.to_csv(f"./datas/{self.dates['year_str']}-{self.dates['month_str']}__{self.user['id']}__dataframe.csv")
+        if self.req_advertise_info == True:
+            self.advertise_traverse()
+        # df = df.set_index('date', drop=True)
+        df.to_csv(f"{self.dir_path}/{self.user['id']}.csv")
         self.driver.close()
-        
         return df
 
 if __name__ == "__main__":
@@ -178,8 +220,8 @@ if __name__ == "__main__":
     curr_year = "2020"
     curr_month = "11"
     compare_year = "2020"
-    compare_month = "10"
-    c = Crawler(user=user, year=curr_year, month=curr_month)
+    compare_month = "9"
+    c = Crawler(user=user, year=curr_year, month=curr_month, req_advertise_info=True)
     df = c.go()
     c2 = Crawler(user=user, year=compare_year, month=compare_month)
     df2 = c2.go()

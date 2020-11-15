@@ -37,7 +37,7 @@ def users():
         {
             "id": "klm1144",
             "password": "aa1144aa",
-            "business": "아리성"
+            "shop": "아리성"
         }
     ]
 
@@ -48,6 +48,9 @@ end_day_root = date_picker_root + 'span:nth-child(3) > div >'
 table = '//*[@id="root"]/div/div[1]/div[3]/div[1]/div[2]/table' 
 def css():
     return {
+        "drawer_btn": '//*[@id="root"]/div/div[1]/div[1]/button',
+        "advertise_management_btn": '#root > div > div.frame-container.lnb-open > div.frame-aside > div > nav > ul > li:nth-child(4) > ul > li:nth-child(1) > a',
+        "advertise_management_btn2": '#root > div > div.frame-container > div.frame-aside > div > nav > ul > li:nth-child(4) > ul > li:nth-child(1) > a',
         "date_picker_root": date_picker_root,
         "start_day_root": start_day_root,
         "end_day_root": end_day_root,
