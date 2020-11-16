@@ -15,17 +15,15 @@ target_df = c.go()
 c2 = Crawler(user=user, year=compare_year, month=compare_month)
 compare_df = c2.go()
 
-target_df.campaign_id = target_df.campaign_id.map(str)
-compare_df.campaign_id = compare_df.campaign_id.map(str)
-order_df = get_stat_by_order(t_df=target_df, c_df=compare_df)
+t_df, c_df = cleaning(t_df=target_df, c_df=compare_df)
+order_df = get_stat_by_order(t_df, c_df)
 
 with open(f"datas/{curr_year}-{curr_month}/adv_info.json", "r") as f:
-    adv_info = json.load(f)
+    adv_info = pd.Series(json.load(f))
+    adv_info.index = adv_info.index.map(int)
 
 campaign_df = get_stat_by_campaign_id(t_df=target_df, c_df=compare_df, adv_info=adv_info)
 
-# order_df.profit.plot.bar().set_title('Order Profit')
-# campaign_df['profit'].plot.bar(color='k').set_title('Ultra Call Profit')
 
 result_dir = f"./results/{curr_year}-{curr_month}-{user['id']}"
 if os.path.isdir(result_dir) == False:
