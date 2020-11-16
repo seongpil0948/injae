@@ -1,6 +1,6 @@
 from time import sleep
 from assets import get_chrome_driver
-from meta import get_dates, users, css
+from meta import get_dates, css
 from utils import login
 
 import pandas as pd
@@ -9,8 +9,7 @@ from selenium.common.exceptions import (
     TimeoutException, 
     ElementNotInteractableException, 
     NoSuchElementException,
-    StaleElementReferenceException,
-    ElementClickInterceptedException
+    StaleElementReferenceException
 )
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -214,15 +213,3 @@ class Crawler:
         self.driver.close()
         return df
 
-if __name__ == "__main__":
-    users = users()
-    user = users[0]
-    curr_year = "2020"
-    curr_month = "11"
-    compare_year = "2020"
-    compare_month = "9"
-    c = Crawler(user=user, year=curr_year, month=curr_month, req_advertise_info=True)
-    df = c.go()
-    c2 = Crawler(user=user, year=compare_year, month=compare_month)
-    df2 = c2.go()
-    # TODO: 증가량 검사

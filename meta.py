@@ -35,10 +35,75 @@ def get_dates(year: str, month: str):
 def users(): 
     return [
         {
+            "id": "amor",
+            "password": "sotkfkd4050",
+            "shop": "취성"
+        },
+        {
+            "id": "seogdae",
+            "password": "aksd6381",
+            "shop": "한국인의 족발보쌈"
+        },
+        {
+            "id": "wpspfpek",
+            "password": "le577222",
+            "shop": "족보쌈 냉온국수"
+        },
+        {
+            "id": "parkcy1472",
+            "password": "pcyoung0041!",
+            "shop": "신성정육식당&김치찌개전문점"
+        },
+        {
             "id": "klm1144",
             "password": "aa1144aa",
             "shop": "아리성"
-        }
+        },
+        {
+            "id": "park1985",
+            "password": "ahffk1818",
+            "shop": "전곱"
+        },
+        {
+            "id": "msp0312",
+            "password": "kbk1218kbk",
+            "shop": "THE만족한족"
+        },
+        {
+            "id": "A01067881155",
+            "password": "lykk3307",
+            "shop": "게랑회랑"
+        },
+        {
+            "id": "eunjy0415",
+            "password": "eunjy!991006",
+            "shop": "수제 Gogo함박&돈가스+연휘포차"
+        },
+        {
+            "id": "topsjingu1016",
+            "password": "KJG101616",
+            "shop": "엄청맛있는탕수육집"
+        },    
+        {
+            "id": "lianji85",
+            "password": "lianji.85",
+            "shop": "해신마라탕"
+        },    
+        {
+            "id": "whougogo",
+            "password": "@00dnddhkd",
+            "shop": "8번가"
+        },    
+        {
+            "id": "cds2008",
+            "password": "cds12345",
+            "shop": "이조본가족발 (프리미엄도시락)"
+        },    
+        {
+            "id": "a0313839585",
+            "password": "ha929564",
+            "shop": "쉐프돼지&냉면안양본점"
+        },    
     ]
 
 
