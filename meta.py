@@ -27,7 +27,7 @@ def get_dates(year: str, month: str):
             }, 
             {
                 "start_date": "29",
-                "end_date": monthrange(year_int, month_int)[1]
+                "end_date": str(monthrange(year_int, month_int)[1])
             }
         ]
     }

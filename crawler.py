@@ -30,17 +30,20 @@ class Crawler:
         if os.path.isdir(self.dir_path) == False:
             os.makedirs(self.dir_path)
 
-    @staticmethod
-    def click_day_in_calendar(driver, calendar_btn, day_root, click_date):
+    def click_day_in_calendar(self, calendar_btn, day_root, click_date):
         calendar_btn.click()
-        calendar_component = WebDriverWait(driver, 3).until(
+        calendar_component = WebDriverWait(self.driver, 3).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, day_root + "div"))
-        )  
+        )
+
+        cal_month = int(calendar_component.text[
+            calendar_component.text.find('년') + 1: calendar_component.text.find('월')
+        ].strip())
+        if cal_month > self.dates['month_int']:
+            calendar_component.find_element_by_class_name('DayPicker-NavButton--prev').click() 
         days = calendar_component.find_elements_by_class_name('DayPicker-Day')
-        for day in days:
-            if day.text == click_date:
-                day.click()
-                break     
+        day = list(filter(lambda day: day.text == click_date, days))[0]
+        day.click()
     
     @staticmethod
     def fix_calendar(start_calendar_component, year_int, month_int):
@@ -50,7 +53,7 @@ class Crawler:
         cal_year = text[:year_idx]
         month_idx = text.find('월')
         cal_month = text[year_idx + 1: month_idx].strip()
-        cal_month_int = int(cal_month.replace('0', ''))
+        cal_month_int = int(cal_month)
         diff = (int(cal_year) * 12 +  cal_month_int) -  (year_int * 12 + month_int)
         if diff > 0:
             for month in range(1, diff + 1):
@@ -124,11 +127,7 @@ class Crawler:
         # Open Calendar
         start_calendar_btn.click()
         start_calendar_component = self.driver.find_element_by_css_selector(self.css['start_calendar_component'])
-        self.fix_calendar(
-            start_calendar_component,
-            year_int=self.dates['year_int'], 
-            month_int=self.dates['month_int']
-        )
+        self.fix_calendar(start_calendar_component, year_int=self.dates['year_int'], month_int=self.dates['month_int'])
         # ETC
         filter_area = self.driver.find_element_by_class_name('filter-row')
         filters = filter_area.find_elements_by_tag_name('select')
@@ -149,13 +148,11 @@ class Crawler:
         for date in self.dates['dates']:
             # 날짜 1~7, 8 ~14 ... 순으로 데이터 수집
             self.click_day_in_calendar(
-                driver=self.driver,
                 calendar_btn=start_calendar_btn,
                 day_root=self.css['start_day_root'],
-                click_date=date['start_date']           
+                click_date=date['start_date']
             )
             self.click_day_in_calendar(
-                driver=self.driver,
                 calendar_btn=end_calendar_btn,
                 day_root=self.css['end_day_root'],
                 click_date=date['end_date']           
