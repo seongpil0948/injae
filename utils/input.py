@@ -15,6 +15,7 @@ def input_info():
         user = users_by_shop[options[pick]]
     except KeyError:
         print('잘못 입력했다. :', pick)
+        exit()
     print('당신의 선택은: ', user)
 
     curr_year = input("기준 년도를 입력해라. ex) 2020 : ").strip()

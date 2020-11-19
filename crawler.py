@@ -1,3 +1,4 @@
+from re import split
 from time import sleep
 from assets import get_chrome_driver
 from meta import get_dates, css
@@ -30,21 +31,6 @@ class Crawler:
         if os.path.isdir(self.dir_path) == False:
             os.makedirs(self.dir_path)
 
-    def click_day_in_calendar(self, calendar_btn, day_root, click_date):
-        calendar_btn.click()
-        calendar_component = WebDriverWait(self.driver, 3).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, day_root + "div"))
-        )
-
-        cal_month = int(calendar_component.text[
-            calendar_component.text.find('년') + 1: calendar_component.text.find('월')
-        ].strip())
-        if cal_month > self.dates['month_int']:
-            calendar_component.find_element_by_class_name('DayPicker-NavButton--prev').click() 
-        days = calendar_component.find_elements_by_class_name('DayPicker-Day')
-        day = list(filter(lambda day: day.text == click_date, days))[0]
-        day.click()
-    
     @staticmethod
     def fix_calendar(start_calendar_component, year_int, month_int):
         "시작캘린더만 선택하면 된다는 전제하에, 캘린더에서 찾는 년, 월로 이동 해줍니다. start_calendar_component: element"
@@ -141,6 +127,24 @@ class Crawler:
         groups = filters[2].find_elements_by_tag_name('option')
         list(filter(lambda x: x.get_attribute('value') == 'ULTRA_CALL', groups))[0].click()
     
+    def click_day_in_calendar(self, calendar_btn, day_root, click_date):
+        calendar_btn.click()
+        calendar_component = WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, day_root + "div"))
+        )
+
+        cal_month = int(calendar_component.text[
+            calendar_component.text.find('년') + 1: calendar_component.text.find('월')
+        ].strip())
+        if cal_month > self.dates['month_int']:
+            calendar_component.find_element_by_class_name('DayPicker-NavButton--prev').click() 
+        days = calendar_component.find_elements_by_class_name('DayPicker-Day')
+        " 이전달 일자 클릭을 방지하기 위함"
+        days = days[10: ] if int(click_date) > 20 else days[: -5]
+        list(filter(lambda day: day.text == click_date, days))[0].click()
+        
+    
+
     def collect_data(self):
         start_calendar_btn = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.css["start_calendar_btn"])))
         end_calendar_btn = self.driver.find_element_by_css_selector(self.css["end_calendar_btn"])        
@@ -157,6 +161,23 @@ class Crawler:
                 day_root=self.css['end_day_root'],
                 click_date=date['end_date']           
             )
+            # check curr selected data is valid
+            end_date = end_calendar_btn.get_attribute('value')
+            curr_end_date = end_date.split('-')[-1] if '-' in end_date else end_date[end_date.rfind(' ') + 1:]
+
+            if date['end_date'] != curr_end_date:
+                print(date['end_date'], '왜 클릭이 안된 것인가?', curr_end_date)
+                self.click_day_in_calendar(
+                    calendar_btn=start_calendar_btn,
+                    day_root=self.css['start_day_root'],
+                    click_date=date['end_date']
+                )
+                self.click_day_in_calendar(
+                    calendar_btn=start_calendar_btn,
+                    day_root=self.css['start_day_root'],
+                    click_date=date['start_date']
+                )                
+
             self.driver.find_element_by_xpath(self.css["search_btn"]).click()
             self.driver.implicitly_wait(1)
             datas += self.parsing_table()
