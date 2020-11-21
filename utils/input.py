@@ -1,5 +1,11 @@
 from meta import users
+from dateutil.parser import parse
 
+def validate(year, month):
+    parse(f"01-{month}-{year}")
+    return True
+
+    
 
 def input_info():
     users_by_shop = { i['shop']: i for i in users()}
@@ -24,4 +30,7 @@ def input_info():
     compare_year = input("비교 년도을 입력해라. ex) 2020 : ").strip()
     compare_month = input("비교 월을 입력해라. ex) 7 : ").strip()
     
+    validate(curr_year, curr_month)
+    validate(compare_year, compare_month)
+
     return (curr_year, curr_month, compare_year, compare_month, user)
