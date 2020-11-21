@@ -1,6 +1,15 @@
 from calendar import monthrange
+from typing import Dict, List, NamedTuple, NewType, TypedDict
 
-def get_dates(year: str, month: str):
+DateRanges = NewType('DateRanges', List[Dict[str, str]])
+class DatePack(TypedDict):
+    year_str: str
+    month_str: str
+    month_int: int
+    year_int: int
+    dates: DateRanges
+
+def get_dates(year: str = "2020", month:str = "9") -> DatePack:
     year_int = int(year)
     month_int = int(month.replace('0', '')) if len(month) < 2 else int(month)
     return {
@@ -32,7 +41,9 @@ def get_dates(year: str, month: str):
         ]
     }
 
-def users(): 
+
+User = TypedDict("User", {'id':str, 'password':str, 'shop':str})
+def users() -> List[User]: 
     return [
         {
             "id": "amor",

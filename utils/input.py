@@ -1,5 +1,6 @@
 from meta import users
 
+
 def input_info():
     users_by_shop = { i['shop']: i for i in users()}
     shops = list(users_by_shop.keys())
