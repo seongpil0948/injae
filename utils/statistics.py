@@ -28,7 +28,7 @@ def get_stat_by_order(t_df, c_df):
     #         raise ValueError('뭔가 잘못 되었다.')
     return t_order
 
-def apply_adv_info(df_by_campaign_id, adv_info) -> DataFrame:
+def apply_adv_info(df_by_campaign_id, adv_info):
     adv_info = pd.Series(adv_info, name="address")
 
     for k in adv_info.index:

@@ -1,8 +1,4 @@
-from re import split
 from time import sleep
-
-from numpy.core.shape_base import block
-from selenium.webdriver.remote.webdriver import WebDriver
 from assets import get_chrome_driver
 from meta import get_dates, css
 from utils import login
@@ -21,10 +17,10 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class Crawler:
-    def __init__(self, user, year:str ="2020", month:str ="10", req_advertise_info:bool =False) -> None:
-        self.login_url: str = "https://ceo.baemin.com/web/login"
-        self.redirect_url: str = "https%3A%2F%2Fceo.baemin.com%2Fself-service/orders/history"
-        self.driver:WebDriver = get_chrome_driver()        
+    def __init__(self, user, year="2020", month="10", req_advertise_info=False):
+        self.login_url = "https://ceo.baemin.com/web/login"
+        self.redirect_url = "https%3A%2F%2Fceo.baemin.com%2Fself-service/orders/history"
+        self.driver = get_chrome_driver()        
         self.dates = get_dates(year, month)
         self.dir_path = f"./datas/{self.dates['year_str']}-{self.dates['month_str']}"
         self.user = user

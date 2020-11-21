@@ -1,17 +1,9 @@
-from typing import Any, Dict, List, TypedDict
+from typing import Any, Dict, List
+from .common import User, DatePack
 
-DateRanges = List[Dict[str, str]]
 
-class DatePack(TypedDict):
-    year_str: str
-    month_str: str
-    month_int: int
-    year_int: int
-    dates: DateRanges
 
 def get_dates(year: str=..., month: str=...) -> DatePack: ...
-
-User: Any
 
 def users() -> List[User]: ...
 
@@ -20,4 +12,4 @@ start_day_root: Any
 end_day_root: Any
 table: str
 
-def css(): ...
+def css() -> Dict[str, str]: ...

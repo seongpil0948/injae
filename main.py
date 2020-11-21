@@ -1,4 +1,5 @@
 import json, os
+import pandas as pd
 
 from utils.input import input_info
 from crawler import Crawler
