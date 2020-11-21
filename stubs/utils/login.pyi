@@ -1,0 +1,3 @@
+from typing import Any
+
+def login(driver: Any, login_url: Any, redirect_url: Any, user: Any): ...

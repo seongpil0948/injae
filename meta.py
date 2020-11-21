@@ -1,7 +1,7 @@
 from calendar import monthrange
-from typing import Dict, List, NamedTuple, NewType, TypedDict
+from typing import Dict, List, TypedDict
 
-DateRanges = NewType('DateRanges', List[Dict[str, str]])
+DateRanges = List[Dict[str, str]]
 class DatePack(TypedDict):
     year_str: str
     month_str: str
