@@ -27,7 +27,7 @@ campaign_df = get_stat_by_campaign_id(t_df=target_df, c_df=compare_df, adv_info=
 
 result_dir = f"./results/{curr_year}-{curr_month}-{user['id']}"
 if os.path.isdir(result_dir) == False:
-    os.mkdir(result_dir)
+    os.makedirs(result_dir)
 
 order_df.to_csv(f"{result_dir}/order.csv")
 campaign_df.to_csv(f"{result_dir}/campaign.csv")

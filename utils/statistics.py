@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from pandas.core.frame import DataFrame
 
 def cleaning(t_df, c_df):
     c_df = c_df.loc[:, ~c_df.columns.str.contains('^Unnamed')]
@@ -12,19 +13,22 @@ def cleaning(t_df, c_df):
         return c_df, t_df
 
 def get_stat_by_order(t_df, c_df):
-    t_order = t_df.groupby('address').sum('payment')
-    c_order = c_df.groupby('address').sum('payment')
+    t_order = t_df.groupby('address').sum('payment').sort_index()
+    c_order = c_df.groupby('address').sum('payment').sort_index()
     t_order['profit'] = t_order.payment - c_order.payment
-    for address in t_order[t_order.profit.isna()].index.to_list():
-        if address in t_order.index:
-            t_order.loc[address] = t_order.loc[address].payment
-        elif address in c_order.index:
-            t_order.loc[address] = -c_order.loc[address].payment
-        else:
-            raise ValueError('뭔가 잘못 되었다.')
+    t_order['profit_p'] = t_order.profit / c_order.payment * 100
+    t_order['compare_payment'] = c_order.payment
+    t_order = t_order[['payment', 'compare_payment', 'profit', 'profit_p']]
+    # for address in t_order[t_order.profit.isna()].index.to_list():
+    #     if address in t_order.index:
+    #         t_order.loc[address] = t_order.loc[address].payment
+    #     elif address in c_order.index:
+    #         t_order.loc[address] = -c_order.loc[address].payment
+    #     else:
+    #         raise ValueError('뭔가 잘못 되었다.')
     return t_order
 
-def apply_adv_info(df_by_campaign_id, adv_info):
+def apply_adv_info(df_by_campaign_id, adv_info) -> DataFrame:
     adv_info = pd.Series(adv_info, name="address")
 
     for k in adv_info.index:
@@ -34,17 +38,9 @@ def apply_adv_info(df_by_campaign_id, adv_info):
     return df_by_campaign_id
 
 def get_stat_by_campaign_id(t_df, c_df, adv_info):
+    " 울트라콜 기준 증가량 계산 "
     curr_order = t_df.groupby('campaign_id').sum('payment')
     compare_order = c_df.groupby('campaign_id').sum('payment')
-
-    try:
-        curr_order = curr_order.drop('기타')
-    except KeyError:
-        pass
-    try:
-        compare_order = compare_order.drop('기타')
-    except KeyError:
-        pass
 
     " 증가율 계산 "
     # 이전달에 울트라콜이 있고 이번달에 없을 수 없음. 왜나하면 이번달 기준으로 adv_info를 구했기 때문 무조건 현재달 기준.

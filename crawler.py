@@ -1,5 +1,7 @@
 from re import split
 from time import sleep
+
+from numpy.core.shape_base import block
 from assets import get_chrome_driver
 from meta import get_dates, css
 from utils import login
@@ -18,7 +20,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class Crawler:
-    def __init__(self, user, year="2020", month="10", req_advertise_info=False):
+    def __init__(self, user, year:str ="2020", month:str ="10", req_advertise_info:bool =False):
         self.login_url = "https://ceo.baemin.com/web/login"
         self.redirect_url = "https%3A%2F%2Fceo.baemin.com%2Fself-service/orders/history"
         self.driver = get_chrome_driver()        
@@ -123,7 +125,7 @@ class Crawler:
         # 배달 완료
         status = filters[1].find_elements_by_tag_name('option')
         list(filter(lambda x: x.get_attribute('value') == 'CLOSED', status))[0].click()
-        # 광고 그룹
+        # # 광고 그룹
         groups = filters[2].find_elements_by_tag_name('option')
         list(filter(lambda x: x.get_attribute('value') == 'ULTRA_CALL', groups))[0].click()
     
