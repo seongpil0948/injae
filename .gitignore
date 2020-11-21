@@ -1,0 +1,17 @@
+# 만약 추가해도 안 될경우 이미 git 이 트래킹 중이기 때문에 
+# git rm -r --cached . 캐시 삭제 ㄲ
+__pycache__
+
+*.png
+*.jpg
+*.jpeg
+
+*.csv
+*.xlsx
+
+results
+datas
+
+.mypy_cache
+
+.vscode

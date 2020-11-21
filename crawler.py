@@ -118,7 +118,10 @@ class Crawler:
         filters = filter_area.find_elements_by_tag_name('select')
         # 상세가계
         shops = filters[0].find_elements_by_tag_name('option')
-        list(filter(lambda x: x.text ==self.user['shop'], shops))[0].click()
+        try:
+            list(filter(lambda x: x.text ==self.user['shop'], shops))[0].click()
+        except IndexError:
+            print(f"{self.user['shop']} 가 실제 존재하는게 맞습니까?")
         # 배달 완료
         status = filters[1].find_elements_by_tag_name('option')
         list(filter(lambda x: x.get_attribute('value') == 'CLOSED', status))[0].click()
