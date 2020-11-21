@@ -18,10 +18,8 @@ order_df = get_stat_by_order(t_df, c_df)
 
 with open(f"datas/{curr_year}-{curr_month}/adv_info.json", "r") as f:
     adv_info = pd.Series(json.load(f))
-    adv_info.index = adv_info.index.map(int)
 
 campaign_df = get_stat_by_campaign_id(t_df=target_df, c_df=compare_df, adv_info=adv_info)
-
 
 result_dir = f"./results/{curr_year}-{curr_month}-{user['id']}"
 if os.path.isdir(result_dir) == False:

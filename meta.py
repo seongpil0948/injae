@@ -52,7 +52,7 @@ def users():
         {
             "id": "wpspfpek",
             "password": "le577222",
-            "shop": "족보쌈 냉온국수"
+            "shop": "족보쌈냉온국수"
         },
         {
             "id": "parkcy1472",

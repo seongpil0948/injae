@@ -122,11 +122,17 @@ class Crawler:
             list(filter(lambda x: x.text ==self.user['shop'], shops))[0].click()
         except IndexError:
             print(f"{self.user['shop']} 가 실제 존재하는게 맞습니까?")
+            self.driver.close()
+            exit()
         # 배달 완료
         status = filters[1].find_elements_by_tag_name('option')
         list(filter(lambda x: x.get_attribute('value') == 'CLOSED', status))[0].click()
-        # # 광고 그룹
-        groups = filters[2].find_elements_by_tag_name('option')
+        # 광고 그룹
+        try:
+            groups = filters[2].find_elements_by_tag_name('option')
+        except StaleElementReferenceException:
+            filters = filter_area.find_elements_by_tag_name('select')
+            groups = filters[2].find_elements_by_tag_name('option')
         list(filter(lambda x: x.get_attribute('value') == 'ULTRA_CALL', groups))[0].click()
     
     def click_day_in_calendar(self, calendar_btn, day_root, click_date):
