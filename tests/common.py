@@ -3,7 +3,7 @@ import os, json, sys
 
 BASE_URL = os.path.dirname(os.path.dirname(os.path.abspath("__file__")))
 sys.path.append(BASE_URL)
-from utils.statistics import cleaning, get_stat_by_order, apply_adv_info
+from utils.statistics import cleaning
 
 
 

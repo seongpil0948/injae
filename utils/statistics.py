@@ -13,40 +13,18 @@ def cleaning(t_df, c_df):
         return c_df, t_df
 
 def get_stat_by_order(t_df, c_df):
-    t_order = t_df.groupby('address').sum('payment').sort_index()
-    c_order = c_df.groupby('address').sum('payment').sort_index()
+    t_order = t_df.groupby('address').sum('payment').drop('campaign_id', axis=1).sort_index()
+    c_order = c_df.groupby('address').sum('payment').drop('campaign_id', axis=1).sort_index()
+
     t_order['profit'] = t_order.payment - c_order.payment
     t_order['profit_p'] = t_order.profit / c_order.payment * 100
     t_order['compare_payment'] = c_order.payment
-    t_order = t_order[['payment', 'compare_payment', 'profit', 'profit_p']]
-    # for address in t_order[t_order.profit.isna()].index.to_list():
-    #     if address in t_order.index:
-    #         t_order.loc[address] = t_order.loc[address].payment
-    #     elif address in c_order.index:
-    #         t_order.loc[address] = -c_order.loc[address].payment
-    #     else:
-    #         raise ValueError('뭔가 잘못 되었다.')
+    t_order['benefit'] = t_order.payment / 88000
+    t_order = t_order[['payment', 'benefit', 'compare_payment', 'profit', 'profit_p']]
     return t_order
-
-def apply_adv_info(df_by_campaign_id, adv_info):
-    adv_info = pd.Series(adv_info, name="address")
-
-    for k in adv_info.index:
-        if k not in df_by_campaign_id.index:
-            df_by_campaign_id.loc[k] = [np.nan, np.nan]
-    df_by_campaign_id = pd.concat([df_by_campaign_id, adv_info], axis=1)
-    return df_by_campaign_id
 
 def get_stat_by_campaign_id(t_df, c_df, adv_info):
     " 울트라콜 기준 증가량 계산 "
-    curr_order = t_df.groupby('campaign_id').sum('payment')
-    compare_order = c_df.groupby('campaign_id').sum('payment')
-
-    " 증가율 계산 "
-    # 이전달에 울트라콜이 있고 이번달에 없을 수 없음. 왜나하면 이번달 기준으로 adv_info를 구했기 때문 무조건 현재달 기준.
-    curr_order['profit'] = curr_order.payment.subtract(compare_order.payment + 88000, fill_value=0)
-    curr_order['profit'] = curr_order.profit / curr_order.payment
-    curr_order['profit'] = curr_order['profit'].map(lambda x: x % -1 if x < 0 else x % 1)
-    curr_order['profit'] = curr_order['profit'] * 100
-    curr_order = apply_adv_info(curr_order, adv_info)
-    return curr_order
+    cp_df = t_df.groupby('campaign_id').sum('payment')
+    adv_info = pd.Series(adv_info, name="address")
+    return pd.concat([cp_df, adv_info], axis=1)

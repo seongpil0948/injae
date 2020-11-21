@@ -1,14 +1,15 @@
 from meta import users
 from dateutil.parser import parse
+from typing import Dict, TypedDict
+
+User = TypedDict("User", {'id':str, 'password':str, 'shop':str})
 
 def validate(year, month):
     parse(f"01-{month}-{year}")
     return True
 
-    
-
 def input_info():
-    users_by_shop = { i['shop']: i for i in users()}
+    users_by_shop: Dict[str, User] = { i['shop']: i for i in users()}
     shops = list(users_by_shop.keys())
     options = { str(j): shops[j - 1] for j in range(1, len(shops) + 1) }
 

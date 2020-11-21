@@ -17,10 +17,10 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 class Crawler:
-    def __init__(self, user, year="2020", month="10", req_advertise_info=False):
+    def __init__(self, user, year="2020", month="10", req_advertise_info=False, chrome_debug=False):
         self.login_url = "https://ceo.baemin.com/web/login"
         self.redirect_url = "https%3A%2F%2Fceo.baemin.com%2Fself-service/orders/history"
-        self.driver = get_chrome_driver()        
+        self.driver = get_chrome_driver(chrome_debug=chrome_debug)        
         self.dates = get_dates(year, month)
         self.dir_path = f"./datas/{self.dates['year_str']}-{self.dates['month_str']}"
         self.user = user
