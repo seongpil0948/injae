@@ -1,4 +1,6 @@
 from time import sleep
+
+from webdriver_manager import driver
 from assets import get_chrome_driver
 from meta import get_dates, css
 from utils.login import login
@@ -62,7 +64,7 @@ class Crawler:
     def parsing_table(self, max_page:int=100):
         datas = []
         for _ in list(range(max_page)):
-            sleep(1)
+            self.driver.implicitly_wait(1)
             table = None
             try:
                 table = self.driver.find_element_by_xpath(self.css['table'])
@@ -103,7 +105,9 @@ class Crawler:
                     address,
                     int(re.search("\d+", cols[5].text.replace(',', '')).group()), # 결제금액
                 ]
-                assert dial_no == data[0], f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n row_num: {row_num}, page: {_ + 1} \n {row.text}"
+                if dial_no != data[0]:
+                    self.logger.error(f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n row_num: {row_num}, page: {_ + 1} \n {row.text}")
+
                 datas.append(data)
             try:
                 e = WebDriverWait(self.driver, 1).until(

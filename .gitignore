@@ -15,3 +15,5 @@ datas
 .mypy_cache
 
 .vscode
+
+*.log
