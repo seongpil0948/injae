@@ -5,7 +5,7 @@ from utils.input import input_info
 from crawler import Crawler
 from utils.statistics import *
 
-CHROME_DEBUG = False
+CHROME_DEBUG = True
 
 curr_year, curr_month, compare_year, compare_month, user = input_info()
 c = Crawler(user=user, year=curr_year, month=curr_month, req_advertise_info=True, chrome_debug=CHROME_DEBUG)

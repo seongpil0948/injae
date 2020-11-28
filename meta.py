@@ -82,9 +82,13 @@ def users():
         {
             "id": "eunjy0415",
             "password": "eunjy!991006",
-            "shop": "수제 Gogo함박&돈가스+연휘포차"
+            "shop": "수제 Gogo함박&돈가스"
         },
         {
+            "id": "eunjy0415",
+            "password": "eunjy!991006",
+            "shop": "연휘포차"
+        },        {
             "id": "topsjingu1016",
             "password": "KJG101616",
             "shop": "엄청맛있는탕수육집"
