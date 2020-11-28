@@ -81,7 +81,6 @@ class Crawler:
                 """
                 address = None; dial_no = None
                 try:
-                    sleep(0.5)
                     dialog_btn = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, self.css['dialog_btn'].format(row_num))))                    
                     dialog_btn.click()
                     address = self.driver.find_element_by_xpath(self.css['dialog_pickup_address']).text
@@ -207,7 +206,6 @@ class Crawler:
                 )                
 
             self.driver.find_element_by_xpath(self.css["search_btn"]).click()
-            self.driver.implicitly_wait(1)
             datas += self.parsing_table()
         df = pd.DataFrame(data=datas, columns=['no', 'date', 'group', 'campaign_id', 'order_info', 'address', 'payment'])
         return df
