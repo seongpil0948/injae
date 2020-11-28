@@ -6,7 +6,6 @@ def cleaning(t_df, c_df):
     c_df = c_df.loc[:, ~c_df.columns.str.contains('^Unnamed')]
     t_df = t_df.loc[:, ~t_df.columns.str.contains('^Unnamed')]
     if not c_df.dtypes.equals(t_df.dtypes):
-        breakpoint()
         raise ValueError('두 데이터의 타입이 다르다')
     elif not all(c_df.columns.__eq__(t_df.columns)):
         raise ValueError('두 데이터의 컬럼이 다르다')

@@ -1,7 +1,7 @@
 from time import sleep
 from assets import get_chrome_driver
 from meta import get_dates, css
-from utils import login
+from utils.login import login
 
 import pandas as pd
 import re, json, os
@@ -14,9 +14,10 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-
+from utils.logger import get_logger
 
 class Crawler:
+    # FIXME: year, month 는 서로 관계가 있지만 Struct 형태로 묶어져 있지 않다.
     def __init__(self, user, year="2020", month="10", req_advertise_info=False, chrome_debug=False):
         self.login_url = "https://ceo.baemin.com/web/login"
         self.redirect_url = "https%3A%2F%2Fceo.baemin.com%2Fself-service/orders/history"
@@ -26,9 +27,22 @@ class Crawler:
         self.user = user
         self.css = css()
         self.req_advertise_info = req_advertise_info
-
+        self.logger = get_logger()
+        self.logger.info("OK")
         if os.path.isdir(self.dir_path) == False:
             os.makedirs(self.dir_path)
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        if 'logger' in d:
+            d['logger'] = d['logger'].name
+
+        return d
+
+    def __setstate__(self, d):
+        if 'logger' in d:
+            d['logger'] = logging.getLogger(d['logger'])
+        self.__dict__.update(d)
 
     @staticmethod
     def fix_calendar(start_calendar_component, year_int, month_int) -> None:
@@ -75,7 +89,7 @@ class Crawler:
                         .replace('배달완료', '').strip()
                     dialog_close_btn.click()
                 except (NoSuchElementException, StaleElementReferenceException) as e:
-                    print('========================\n', e)
+                    self.logger.error(f"page: {_} \n {row_num} row \n {e}")
                     pass
 
                 row = self.driver.find_element_by_xpath(f"{self.css['table']}/tbody/tr[{row_num}]")
@@ -121,7 +135,7 @@ class Crawler:
         try:
             list(filter(lambda x: x.text ==self.user['shop'], shops))[0].click()
         except IndexError:
-            print(f"{self.user['shop']} 가 실제 존재하는게 맞습니까?")
+            self.logger.error(f"{self.user['shop']} 가 실제 존재하는게 맞습니까?")
             self.driver.close()
             exit()
         # 배달 완료
@@ -174,7 +188,7 @@ class Crawler:
             curr_end_date = end_date.split('-')[-1] if '-' in end_date else end_date[end_date.rfind(' ') + 1:]
 
             if date['end_date'] != curr_end_date:
-                print(date['end_date'], '왜 클릭이 안된 것인가?', curr_end_date)
+                self.logger.debug(f"{curr_end_date} 일이 선택 되었습니다. \n 하지만 {date['end_date']}'이 이번달의 마지막 날짜입니다.")
                 self.click_day_in_calendar(
                     calendar_btn=start_calendar_btn,
                     day_root=self.css['start_day_root'],
