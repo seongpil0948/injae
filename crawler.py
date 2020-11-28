@@ -64,7 +64,6 @@ class Crawler:
     def parsing_table(self, max_page:int=100):
         datas = []
         for _ in list(range(max_page)):
-            self.driver.implicitly_wait(1)
             table = None
             try:
                 table = self.driver.find_element_by_xpath(self.css['table'])
@@ -82,14 +81,16 @@ class Crawler:
                 """
                 address = None; dial_no = None
                 try:
-                    
-                    dialog_btn = WebDriverWait(self.driver, 1).until(EC.element_to_be_clickable((By.XPATH, self.css['dialog_btn'].format(row_num))))                    
+                    sleep(0.5)
+                    dialog_btn = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, self.css['dialog_btn'].format(row_num))))                    
                     dialog_btn.click()
                     address = self.driver.find_element_by_xpath(self.css['dialog_pickup_address']).text
                     dialog_close_btn = self.driver.find_element_by_xpath(self.css['dialog_close_btn'])
                     dial_no = self.driver.find_element_by_xpath(self.css['dialog_order_no']).text\
                         .replace('배달완료', '').strip()
                     dialog_close_btn.click()
+                except TimeoutException:
+                    self.logger.debug(f"rows: {len(rows)}")
                 except (NoSuchElementException, StaleElementReferenceException) as e:
                     self.logger.error(f"page: {_} \n {row_num} row \n {e}")
                     pass
@@ -107,6 +108,7 @@ class Crawler:
                 ]
                 if dial_no != data[0]:
                     self.logger.error(f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n row_num: {row_num}, page: {_ + 1} \n {row.text}")
+                    breakpoint()
 
                 datas.append(data)
             try:
