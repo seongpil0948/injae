@@ -1,22 +1,23 @@
 from time import sleep
-
-from webdriver_manager import driver
-from assets import get_chrome_driver
-from meta import get_dates, css
-from utils.login import login
-
 import pandas as pd
-import re, json, os
+import re, json, os, logging
+from typing import NoReturn
 from selenium.common.exceptions import (
     TimeoutException, 
     ElementNotInteractableException, 
     NoSuchElementException,
     StaleElementReferenceException
 )
+
 from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils.logger import get_logger
+from assets import get_chrome_driver
+from meta import get_dates, css
+from utils.login import login
+
 
 class Crawler:
     # FIXME: year, month 는 서로 관계가 있지만 Struct 형태로 묶어져 있지 않다.
@@ -47,7 +48,7 @@ class Crawler:
         self.__dict__.update(d)
 
     @staticmethod
-    def fix_calendar(start_calendar_component, year_int, month_int) -> None:
+    def fix_calendar(start_calendar_component, year_int, month_int) -> NoReturn:
         "시작캘린더만 선택하면 된다는 전제하에, 캘린더에서 찾는 년, 월로 이동 해줍니다. start_calendar_component: element"
         text = start_calendar_component.text
         year_idx = text.find('년')
@@ -61,38 +62,31 @@ class Crawler:
                 # 월 만큼 이전버튼 클릭.
                 start_calendar_component.find_element_by_class_name('DayPicker-NavButton--prev').click()    
 
+    def paring_dialog(self, row_num):
+        dialog_btn = WebDriverWait(self.driver, 3).until(
+            EC.element_to_be_clickable((By.XPATH, self.css['dialog_btn'].format(row_num))))                    
+        dialog_btn.click()
+        address = WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.XPATH, self.css['dialog_pickup_address']))).text
+        dialog_close_btn = self.driver.find_element_by_xpath(self.css['dialog_close_btn'])
+        dial_no = self.driver.find_element_by_xpath(self.css['dialog_order_no']).text\
+            .replace('배달완료', '').strip()
+        dialog_close_btn.click()
+
     def parsing_table(self, max_page:int=100):
         datas = []
-        for _ in list(range(max_page)):
-            table = None
-            try:
-                table = self.driver.find_element_by_xpath(self.css['table'])
-            except NoSuchElementException:
-                if _ == 0: # no data~~
-                    break
-                else:
-                    raise NoSuchElementException
+        for page in list(range(max_page)):
+            table = WebDriverWait(self.driver, 3).until(
+                EC.presence_of_element_located((By.XPATH, self.css['table'])))
             rows = table.find_elements_by_tag_name('tr')
-            
+            # 0은 헤더이기 때문에 1부터
             for row_num in list(range(1, len(rows))):
-                """ 
-                    0은 헤더이기 때문에 1부터. 다이얼로그 클릭 이벤트로 인해 DOM 이 변경된후에 다시 이전에 사용하던 
-                    Element 변수를 사용하게 되면 StaleElementReferenceException 에러 발생.. 고로 다시 찾아야함.
-                """
                 address = None; dial_no = None
                 try:
-                    dialog_btn = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.XPATH, self.css['dialog_btn'].format(row_num))))                    
-                    dialog_btn.click()
-                    address = self.driver.find_element_by_xpath(self.css['dialog_pickup_address']).text
-                    dialog_close_btn = self.driver.find_element_by_xpath(self.css['dialog_close_btn'])
-                    dial_no = self.driver.find_element_by_xpath(self.css['dialog_order_no']).text\
-                        .replace('배달완료', '').strip()
-                    dialog_close_btn.click()
-                except TimeoutException:
-                    self.logger.debug(f"rows: {len(rows)}")
-                except (NoSuchElementException, StaleElementReferenceException) as e:
-                    self.logger.error(f"page: {_} \n {row_num} row \n {e}")
-                    pass
+                    self.paring_dialog(row_num)
+                except (NoSuchElementException, StaleElementReferenceException, TimeoutException) as e:
+                    self.logger.error(f"page: {page} \n {row_num} row \n {e}")
+                    raise e
 
                 row = self.driver.find_element_by_xpath(f"{self.css['table']}/tbody/tr[{row_num}]")
                 cols = row.find_elements_by_tag_name('td')
@@ -106,9 +100,7 @@ class Crawler:
                     int(re.search("\d+", cols[5].text.replace(',', '')).group()), # 결제금액
                 ]
                 if dial_no != data[0]:
-                    self.logger.error(f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n row_num: {row_num}, page: {_ + 1} \n {row.text}")
-                    breakpoint()
-
+                    self.logger.error(f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n row_num: {row_num}, page: {page + 1} \n {row.text}")
                 datas.append(data)
             try:
                 e = WebDriverWait(self.driver, 1).until(
@@ -117,12 +109,8 @@ class Crawler:
                 self.driver.find_element_by_xpath(self.css['next_page'])    
                 e.click()
             except (ElementNotInteractableException, TimeoutException) as e:
-                """
-                    -- indicate --
-                    ElementNotInteractableException: page = 1
-                    TimeoutException: last page
-                """
-                break
+                break # Last Page
+            sleep(0.3)
         return datas
 
     def filtering(self):
