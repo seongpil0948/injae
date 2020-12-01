@@ -1,7 +1,10 @@
+# injae dir
 BASEDIR=$(find $HOME/coding -type d  -name injae | head -1)
+STUBDIR=$(find $HOME/coding -type d  -name stubs | head -1)
 
-echo "Testing.."
-mypy $BASEDIR/main.py
+export MYPYPATH=$STUBDIR
+
+mypy $STUBDIR
 if [ $? -eq 0 ]
 then
     echo "Test is Ok"

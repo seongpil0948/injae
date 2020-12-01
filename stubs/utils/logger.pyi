@@ -1,0 +1,3 @@
+from logging import Logger
+
+def get_logger() -> Logger: ...
