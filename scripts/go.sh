@@ -1,6 +1,6 @@
 # injae dir
 BASEDIR=$(find $HOME/coding -type d  -name injae | head -1)
-STUBDIR=$(find $HOME/coding -type d  -name stubs | head -1)
+STUBDIR=$(find $BASEDIR -type d  -name stubs | head -1)
 
 export MYPYPATH=$STUBDIR
 
