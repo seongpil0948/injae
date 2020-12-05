@@ -6,11 +6,13 @@ from selenium.common.exceptions import (
     TimeoutException, 
     ElementNotInteractableException, 
     NoSuchElementException,
-    StaleElementReferenceException
+    StaleElementReferenceException,
+    ElementClickInterceptedException
+
 )
 
 from selenium.webdriver.common.by import By
-from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils.logger import get_logger
@@ -66,11 +68,14 @@ class Crawler:
             EC.element_to_be_clickable((By.XPATH, self.css['dialog_btn'].format(row_num))))                    
         dialog_btn.click()
         address = WebDriverWait(self.driver, 3).until(
-            EC.presence_of_element_located((By.XPATH, self.css['dialog_pickup_address']))).text
+            EC.presence_of_element_located((By.XPATH, self. css['dialog_pickup_address']))).text
         dialog_close_btn = self.driver.find_element_by_xpath(self.css['dialog_close_btn'])
         dial_no = self.driver.find_element_by_xpath(self.css['dialog_order_no']).text\
             .replace('배달완료', '').strip()
-        dialog_close_btn.click()
+        try:
+            dialog_close_btn.click()
+        except ElementClickInterceptedException as e:
+            dialog_close_btn.sendKeys(Keys.ENTER);
         return (dial_no, address)
 
     def parsing_table(self, max_page:int=100):
@@ -156,13 +161,15 @@ class Crawler:
         calendar_component = WebDriverWait(self.driver, 3).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, day_root + "div"))
         )
+        text = calendar_component.text
+        cal_month = int(text[text.find('년') + 1: text.find('월')].strip())
 
-        cal_month = int(calendar_component.text[
-            calendar_component.text.find('년') + 1: calendar_component.text.find('월')
-        ].strip())
         if cal_month > self.dates['month_int']:
-            calendar_component.find_element_by_class_name('DayPicker-NavButton--prev').click() 
-        days = calendar_component.find_elements_by_class_name('DayPicker-Day')
+            calendar_component.find_element_by_class_name('DayPicker-NavButton--prev').click()
+        try:
+            days = calendar_component.find_elements_by_class_name('DayPicker-Day')
+        except StaleElementReferenceException as e:
+            breakpoint()
         " 이전달 일자 클릭을 방지하기 위함"
         days = days[10: ] if int(click_date) > 20 else days[: -5]
         list(filter(lambda day: day.text == click_date, days))[0].click()
@@ -228,11 +235,16 @@ class Crawler:
         table = card.find_element_by_tag_name('tbody')
         rows = table.find_elements_by_tag_name('tr')
         datas = {}
-        for row in rows:
-            cols = row.find_elements_by_tag_name('td')
-            campaign_id = re.search('\d+', cols[0].text).group()
-            address = cols[2].text.replace('노출위치', '')
-            datas[campaign_id] = address
+        try:
+            for row in rows:
+                cols = row.find_elements_by_tag_name('td')
+                campaign_id = re.search('\d+', cols[0].text).group()
+                address = cols[2].text.replace('노출위치', '')
+                datas[campaign_id] = address
+        except StaleElementReferenceException as e:
+            breakpoint()
+            self.logger.error(e)
+            exit()
         
         with open(f"{self.dir_path}/adv_info.json", 'w') as f:
             json.dump(datas, f)

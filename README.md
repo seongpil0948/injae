@@ -13,8 +13,9 @@
 ---
 ## Clients only able perform that Git Pull
 
-
+## Debug True 일경우 노트북화면보다 큰화면에서 진행헤야함
+    * 광고관리가 보이지 않기 때문
 ~~~
 TODO: 
-    1. 테이블이 바뀔때까지 기다려야 한다.
+    1. 테이블이 바뀔때까지 기다려
 ~~~
