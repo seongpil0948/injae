@@ -102,12 +102,7 @@ def users():
             "id": "whougogo",
             "password": "@00dnddhkd",
             "shop": "8번가"
-        },    
-        {
-            "id": "cds2008",
-            "password": "cds12345",
-            "shop": "이조본가족발 (프리미엄도시락)"
-        },    
+        }, 
         {
             "id": "a0313839585",
             "password": "ha929564",

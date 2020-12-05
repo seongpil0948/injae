@@ -31,7 +31,6 @@ class Crawler:
         self.css = css()
         self.req_advertise_info = req_advertise_info
         self.logger = get_logger()
-        self.logger.info("OK")
         if os.path.isdir(self.dir_path) == False:
             os.makedirs(self.dir_path)
 
@@ -72,6 +71,7 @@ class Crawler:
         dial_no = self.driver.find_element_by_xpath(self.css['dialog_order_no']).text\
             .replace('배달완료', '').strip()
         dialog_close_btn.click()
+        return (dial_no, address)
 
     def parsing_table(self, max_page:int=100):
         datas = []
@@ -85,14 +85,13 @@ class Crawler:
                     self.logger.debug(f"{self.dates['year_str']}년 {self.dates['month_str']}월 일부 기간내에 데이터가 존재하지 안습니다")
                     return []
                 else:
-                    breakpoint()
                     raise e
             rows = table.find_elements_by_tag_name('tr')
             # 0은 헤더이기 때문에 1부터
             for row_num in list(range(1, len(rows))):
                 address = None; dial_no = None
                 try:
-                    self.paring_dialog(row_num)
+                    (dial_no, address) = self.paring_dialog(row_num)
                 except (NoSuchElementException, StaleElementReferenceException, TimeoutException) as e:
                     self.logger.error(f"page: {page} \n {row_num} row \n {e}")
                     raise e
@@ -110,6 +109,7 @@ class Crawler:
                 ]
                 if dial_no != data[0]:
                     self.logger.error(f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n row_num: {row_num}, page: {page + 1} \n {row.text}")
+                    breakpoint()
                 datas.append(data)
             try:
                 e = WebDriverWait(self.driver, 1).until(
@@ -119,7 +119,7 @@ class Crawler:
                 e.click()
             except (ElementNotInteractableException, TimeoutException) as e:
                 break # Last Page
-            sleep(0.3)
+            sleep(1)
         return datas
 
     def filtering(self):
