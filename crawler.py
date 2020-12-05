@@ -75,9 +75,18 @@ class Crawler:
 
     def parsing_table(self, max_page:int=100):
         datas = []
-        for page in list(range(max_page)):
-            table = WebDriverWait(self.driver, 3).until(
-                EC.presence_of_element_located((By.XPATH, self.css['table'])))
+        for page in list(range(1, max_page)):
+            try:
+                table = WebDriverWait(self.driver, 3).until(
+                    EC.presence_of_element_located((By.XPATH, self.css['table'])))
+            except TimeoutException as e:
+                if page == 1 and '없습니다' in \
+                    self.driver.find_element_by_xpath(self.css["order_empty_text"]).text:
+                    self.logger.debug(f"{self.dates['year_str']}년 {self.dates['month_str']}월 일부 기간내에 데이터가 존재하지 안습니다")
+                    return []
+                else:
+                    breakpoint()
+                    raise e
             rows = table.find_elements_by_tag_name('tr')
             # 0은 헤더이기 때문에 1부터
             for row_num in list(range(1, len(rows))):

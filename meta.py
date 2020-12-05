@@ -143,5 +143,8 @@ def css():
         "start_calendar_btn": start_day_root + "input",
         "end_calendar_btn": end_day_root + "input",
         "start_calendar_component": start_day_root + "div",
-        "end_calendar_component": end_day_root + "div",   
+        "end_calendar_component": end_day_root + "div",
+
+        # meta
+        "order_empty_text": '//*[@id="root"]/div/div[1]/div[3]/div[1]/div[2]'
     }
