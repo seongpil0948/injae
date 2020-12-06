@@ -76,6 +76,7 @@ def css():
         "dialog_close_btn": '//*[@id="root"]/div/div[2]/div/form/div[3]/button',
         "dialog_pickup_address": '//*[@id="root"]/div/div[2]/div/form/div[2]/div/div/table[2]/tbody/tr[3]/td',
         "dialog_order_no": '//*[@id="root"]/div/div[2]/div/form/div[2]/div/div/div',
+        "next_page_alter": '//*[@id="root"]/div/div[1]/div[3]/div[1]/nav/ul/li[5]/a/i',
         "next_page": '//*[@id="root"]/div/div[1]/div[3]/div[1]/nav/ul/li[8]/a/i',
         "search_btn": '//*[@id="root"]/div/div[1]/div[3]/div[1]/div[1]/div[2]/button',
         "table": table,
@@ -89,5 +90,6 @@ def css():
         "end_calendar_component": end_day_root + "div",
 
         # meta
-        "order_empty_text": '//*[@id="root"]/div/div[1]/div[3]/div[1]/div[2]'
+        "order_empty_text": '//*[@id="root"]/div/div[1]/div[3]/div[1]/div[2]',
+        "num_of_order_class": 'DataList',
     }

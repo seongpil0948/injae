@@ -116,19 +116,21 @@ class Crawler:
                 ]
                 if dial_no != data[0]:
                     self.logger.error(f"difference between \n dial_no: {dial_no} and data[0]: {data[0]} \n row_num: {row_num}, page: {page + 1} \n {row.text}")
-                    breakpoint()
+                    exit()
                 datas.append(data)
             try:
-                e = WebDriverWait(self.driver, 1).until(
-                    EC.element_to_be_clickable((By.XPATH, self.css['next_page']))
-                )
-                self.driver.find_element_by_xpath(self.css['next_page'])    
+                e = self.driver.find_element_by_class_name('frame-body').find_element_by_class_name('icon-arrow-right')
                 e.click()
             except (ElementNotInteractableException, TimeoutException) as e:
-                break # Last Page
+                info = self.driver.find_element_by_class_name(self.css['num_of_order_class']).text
+                num_of_order = int(re.search("\d+", info).group())
+                if num_of_order == len(datas): # Last Page
+                    break
+                else:
+                    breakpoint()
+                    raise Exception("모든 데이터가 수집되지 않았습니다")
             sleep(1)
         return datas
-
     def filtering(self):
         # Calendar
         start_calendar_btn = WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, self.css["start_calendar_btn"])))
