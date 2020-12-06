@@ -232,9 +232,14 @@ class Crawler:
             pass
         self.driver.implicitly_wait(1)
 
+        # 가계명
         shops = self.driver.find_elements_by_css_selector('div.ShopSelect > select > option')
-        list(filter(lambda x: x.text == self.user['shop'], shops))[0].click()
-
+        matched_shops = list(filter(lambda x: x.text == self.user['shop'], shops))
+        if 'order' in self.user:
+            duplicate_order = int(self.user['order'])
+            matched_shops[duplicate_order].click()
+        else:
+            matched_shops[0].click()
         sleep(1)
         cards = self.driver.find_elements_by_class_name('Card')
         try:
