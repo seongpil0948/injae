@@ -269,9 +269,9 @@ class Crawler:
             self.advertise_traverse()
         # df = df.set_index('date', drop=True)
         if 'order' in self.user:
-            df.to_csv(f"{self.dir_path}/{self.user['id']}_{self.user['order']} {self.user['cate']}.csv")
+            df.to_csv(f"{self.dir_path}/{self.user['id']}_{self.user['order']} {self.user['cate']}.csv", encoding='utf-8-sig')
         else:
-            df.to_csv(f"{self.dir_path}/{self.user['id']}.csv")
+            df.to_csv(f"{self.dir_path}/{self.user['id']}.csv", encoding='utf-8-sig')
         self.driver.close()
         return df
 

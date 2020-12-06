@@ -28,8 +28,8 @@ if os.path.isdir(result_dir) == False:
 
 
 if 'order' in user:
-    order_df.to_csv(f"{result_dir}/{user['order']} {user['cate']}_order.csv")
-    campaign_df.to_csv(f"{result_dir}/{user['order']} {user['cate']}_campaign.csv")
+    order_df.to_csv(f"{result_dir}/{user['order']} {user['cate']}_order.csv", encoding='utf-8-sig')
+    campaign_df.to_csv(f"{result_dir}/{user['order']} {user['cate']}_campaign.csv", encoding='utf-8-sig')
 else:
-    order_df.to_csv(f"{result_dir}/order.csv")
-    campaign_df.to_csv(f"{result_dir}/campaign.csv")
+    order_df.to_csv(f"{result_dir}/order.csv", encoding='utf-8-sig')
+    campaign_df.to_csv(f"{result_dir}/campaign.csv", encoding='utf-8-sig')
