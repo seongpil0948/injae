@@ -28,6 +28,7 @@ class Crawler:
         self.redirect_url = "https%3A%2F%2Fceo.baemin.com%2Fself-service/orders/history"
         self.driver = get_chrome_driver(chrome_debug=chrome_debug)        
         self.dates = get_dates(year, month)
+        self.end_dates = list(map(lambda x: x['end_date'], self.dates['dates']))
         self.dir_path = f"./datas/{self.dates['year_str']}-{self.dates['month_str']}"
         self.user = user
         self.css = css()
@@ -75,7 +76,7 @@ class Crawler:
         try:
             dialog_close_btn.click()
         except ElementClickInterceptedException as e:
-            dialog_close_btn.sendKeys(Keys.ENTER);
+            dialog_close_btn.sendKeys(Keys.ENTER)
         return (dial_no, address)
 
     def parsing_table(self, max_page:int=100):
@@ -158,22 +159,18 @@ class Crawler:
     
     def click_day_in_calendar(self, calendar_btn, day_root, click_date):
         calendar_btn.click()
-        calendar_component = WebDriverWait(self.driver, 3).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, day_root + "div"))
-        )
+        calendar_component = WebDriverWait(self.driver, 3).until(EC.presence_of_element_located((By.CSS_SELECTOR, day_root + "div")))
         text = calendar_component.text
         cal_month = int(text[text.find('년') + 1: text.find('월')].strip())
+        
 
-        if cal_month > self.dates['month_int']:
+        if cal_month > self.dates['month_int'] and click_date not in self.end_dates:
             calendar_component.find_element_by_class_name('DayPicker-NavButton--prev').click()
-        try:
-            days = calendar_component.find_elements_by_class_name('DayPicker-Day')
-        except StaleElementReferenceException as e:
-            breakpoint()
+        days = calendar_component.find_elements_by_class_name('DayPicker-Day')
         " 이전달 일자 클릭을 방지하기 위함"
         days = days[10: ] if int(click_date) > 20 else days[: -5]
         list(filter(lambda day: day.text == click_date, days))[0].click()
-        
+
     
 
     def collect_data(self):

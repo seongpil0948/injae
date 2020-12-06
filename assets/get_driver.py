@@ -19,6 +19,11 @@ def get_chrome_driver(chrome_debug=False):
         options.add_argument('window-size=1920x1080')
         options.add_argument('--disable-gpu')
     
-    driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), chrome_options=options)
+    driver = webdriver.Chrome(
+        executable_path=ChromeDriverManager().install(),
+        chrome_options=options,
+        service_args=['--silent'],
+        service_log_path='./chrome.log'
+    )
     driver.maximize_window()
     return driver
