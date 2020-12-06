@@ -235,6 +235,7 @@ class Crawler:
         shops = self.driver.find_elements_by_css_selector('div.ShopSelect > select > option')
         list(filter(lambda x: x.text == self.user['shop'], shops))[0].click()
 
+        sleep(1)
         cards = self.driver.find_elements_by_class_name('Card')
         try:
             card = list(filter(lambda card: '울트라콜' in card.find_element_by_class_name('card-header').text, cards))[0]
