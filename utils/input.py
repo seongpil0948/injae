@@ -1,4 +1,4 @@
-from meta import users
+from meta import get_users
 from dateutil.parser import parse
 from typing import Dict, TypedDict, List
 
@@ -21,18 +21,20 @@ def validate(year, month):
     return True
 
 def input_info():
-    users_by_shop: Dict[str, User] = { i['shop']: i for i in users()}
-    shops: List[str] = list(users_by_shop.keys())
-    options = { str(j): shops[j - 1] for j in range(1, len(shops) + 1) }
+    users = get_users()
+    options = { str(j): users[j - 1] for j in range(1, len(users) + 1) }
 
     option_str = "인재씨 원하시는 매장의 번호를 입력 해주세요. \n"
-    for num, shop in options.items():
-        option_str += f"    {num})  {shop}\n" 
+    for num, user in options.items():
+        if 'order' in user:
+            option_str += f"    {num})  {user['shop']} {user['order']} {user['cate']}\n"     
+        else:
+            option_str += f"    {num})  {user['shop']}\n" 
     pick = input(option_str)
 
     user = None
     try:
-        user = users_by_shop[options[pick]]
+        user = options[pick]
     except KeyError:
         logger.error('잘못 입력했다. :', pick)
         exit()

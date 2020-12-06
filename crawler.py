@@ -13,6 +13,7 @@ from selenium.common.exceptions import (
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils.logger import get_logger
@@ -138,10 +139,15 @@ class Crawler:
         # ETC
         filter_area = self.driver.find_element_by_class_name('filter-row')
         filters = filter_area.find_elements_by_tag_name('select')
-        # 상세가계
+        # 상세가게
         shops = filters[0].find_elements_by_tag_name('option')
+        matched_shops = list(filter(lambda x: x.text ==self.user['shop'], shops))
         try:
-            list(filter(lambda x: x.text ==self.user['shop'], shops))[0].click()
+            if 'order' in self.user:
+                duplicate_order = int(self.user['order'])
+                matched_shops[duplicate_order].click()
+            else:
+                matched_shops[0].click()            
         except IndexError:
             self.logger.error(f"{self.user['shop']} 가 실제 존재하는게 맞습니까?")
             self.driver.close()
@@ -228,7 +234,11 @@ class Crawler:
         list(filter(lambda x: x.text == self.user['shop'], shops))[0].click()
 
         cards = self.driver.find_elements_by_class_name('Card')
-        card = list(filter(lambda card: '울트라콜' in card.find_element_by_class_name('card-header').text, cards))[0]
+        try:
+            card = list(filter(lambda card: '울트라콜' in card.find_element_by_class_name('card-header').text, cards))[0]
+        except IndexError as e:
+            print("현재 울트라콜을 지원하지 않는 가게 입니다.")
+            exit()
         table = card.find_element_by_tag_name('tbody')
         rows = table.find_elements_by_tag_name('tr')
         datas = {}
@@ -239,7 +249,6 @@ class Crawler:
                 address = cols[2].text.replace('노출위치', '')
                 datas[campaign_id] = address
         except StaleElementReferenceException as e:
-            breakpoint()
             self.logger.error(e)
             exit()
         
@@ -259,7 +268,10 @@ class Crawler:
         if self.req_advertise_info == True:
             self.advertise_traverse()
         # df = df.set_index('date', drop=True)
-        df.to_csv(f"{self.dir_path}/{self.user['id']}.csv")
+        if 'order' in self.user:
+            df.to_csv(f"{self.dir_path}/{self.user['id']}_{self.user['order']} {self.user['cate']}.csv")
+        else:
+            df.to_csv(f"{self.dir_path}/{self.user['id']}.csv")
         self.driver.close()
         return df
 

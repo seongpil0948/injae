@@ -1,8 +1,7 @@
 from calendar import monthrange
+import pandas as pd
 
 
-
- 
 def get_dates(year="2020", month="9"):
     year_int = int(year)
     month_int = int(month.replace('0', '')) if len(month) < 2 else int(month)
@@ -37,78 +36,27 @@ def get_dates(year="2020", month="9"):
 
 
 
-def users(): 
-    return [
-        {
-            "id": "amor",
-            "password": "sotkfkd4050",
-            "shop": "취성"
-        },
-        {
-            "id": "seogdae",
-            "password": "aksd6381",
-            "shop": "한국인의 족발보쌈"
-        },
-        {
-            "id": "wpspfpek",
-            "password": "le577222",
-            "shop": "족보쌈냉온국수"
-        },
-        {
-            "id": "parkcy1472",
-            "password": "pcyoung0041!",
-            "shop": "신성정육식당&김치찌개전문점"
-        },
-        {
-            "id": "klm1144",
-            "password": "aa1144aa",
-            "shop": "아리성"
-        },
-        {
-            "id": "park1985",
-            "password": "ahffk1818",
-            "shop": "전곱"
-        },
-        {
-            "id": "msp0312",
-            "password": "kbk1218kbk",
-            "shop": "THE만족한족"
-        },
-        {
-            "id": "A01067881155",
-            "password": "lykk3307",
-            "shop": "게랑회랑"
-        },
-        {
-            "id": "eunjy0415",
-            "password": "eunjy!991006",
-            "shop": "수제 Gogo함박&돈가스"
-        },
-        {
-            "id": "eunjy0415",
-            "password": "eunjy!991006",
-            "shop": "연휘포차"
-        },        {
-            "id": "topsjingu1016",
-            "password": "KJG101616",
-            "shop": "엄청맛있는탕수육집"
-        },    
-        {
-            "id": "lianji85",
-            "password": "lianji.85",
-            "shop": "해신마라탕"
-        },    
-        {
-            "id": "whougogo",
-            "password": "@00dnddhkd",
-            "shop": "8번가"
-        }, 
-        {
-            "id": "a0313839585",
-            "password": "ha929564",
-            "shop": "쉐프돼지&냉면 안양본점"
-        },    
-    ]
+def get_users(): 
+    df = pd.read_excel('./users.xlsx')
+    df = df.fillna(-1)
+    df.order = df.order.map(int)
+    result = []
+    for row in df.values.tolist():
+        if row[3] > -1 : # 중복 이름이 있다면
+            result.append({
+                'shop': row[0],
+                'id': row[1],
+                'password': row[2],
+                'order': row[3],
+                'cate': row[4]
+            })
+        else:
+            result.append({
+                'shop': row[0],
+                'id': row[1],
+                'password': row[2]
+            })
+    return result
 
 
 date_picker_root = "#root > div > div.frame-container > div.frame-wrap > div.frame-body > div.filter-container.py-0.pt-sm-3.pb-sm-0 > div:nth-child(2) > div > "
