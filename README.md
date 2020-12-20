@@ -1,6 +1,5 @@
 # for INJAE
 
-## chrome version = 86.0.4240.18
 ----
 
 ## 깃발 id = 캠페인 아이디

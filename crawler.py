@@ -66,9 +66,9 @@ class Crawler:
                 start_calendar_component.find_element_by_class_name('DayPicker-NavButton--prev').click()    
 
     def paring_dialog(self, row_num):
-        dialog_btn = WebDriverWait(self.driver, 3).until(
-            EC.element_to_be_clickable((By.XPATH, self.css['dialog_btn'].format(row_num))))                    
-        dialog_btn.click()
+        # 여기서 발생한 에러는 화면크기 영향을 받았을 확률이 크다.
+        WebDriverWait(self.driver, 3).until(EC.element_to_be_clickable(
+            (By.XPATH, self.css['dialog_btn'].format(row_num)))).click()
         address = WebDriverWait(self.driver, 3).until(
             EC.presence_of_element_located((By.XPATH, self. css['dialog_pickup_address']))).text
         dialog_close_btn = self.driver.find_element_by_xpath(self.css['dialog_close_btn'])
@@ -177,7 +177,14 @@ class Crawler:
         days = calendar_component.find_elements_by_class_name('DayPicker-Day')
         " 이전달 일자 클릭을 방지하기 위함"
         days = days[10: ] if int(click_date) > 20 else days[: -5]
-        list(filter(lambda day: day.text == click_date, days))[0].click()
+        try:
+            list(filter(lambda day: day.text == click_date, days))[0].click()
+        except StaleElementReferenceException:
+            calendar_btn.click()
+            calendar_component = WebDriverWait(self.driver, 3)\
+                .until(EC.presence_of_element_located((By.CSS_SELECTOR, day_root + "div")))            
+            days = calendar_component.find_elements_by_class_name('DayPicker-Day')
+            list(filter(lambda day: day.text == click_date, days))[0].click()
 
     
 
