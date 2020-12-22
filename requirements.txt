@@ -1,22 +1,4 @@
-awscli==1.18.138
 beautifulsoup4 @ file:///tmp/build/80754af9/beautifulsoup4_1601924105527/work
-brotlipy==0.7.0
-certifi==2020.12.5
-cffi @ file:///opt/concourse/worker/volumes/live/730e9a28-66f9-4e03-51ad-252ec8e40d81/volume/cffi_1606255126408/work
-chardet @ file:///opt/concourse/worker/volumes/live/a5a7c56b-23cb-471d-7404-f4130b8aed33/volume/chardet_1605303184529/work
-colorama
-configparser==5.0.1
-crayons==0.4.0
-cryptography @ file:///opt/concourse/worker/volumes/live/27753773-e292-4a76-405d-313f3647b99f/volume/cryptography_1607636767414/work
-cycler==0.10.0
-docutils==0.15.2
-idna @ file:///tmp/build/80754af9/idna_1593446292537/work
-jmespath==0.10.0
-kiwisolver @ file:///opt/concourse/worker/volumes/live/b8936fa6-0e4b-47e7-4fb4-e02dbd4505ee/volume/kiwisolver_1604014598721/work
-matplotlib @ file:///opt/concourse/worker/volumes/live/f7797860-f8aa-410c-4a56-72315954816b/volume/matplotlib-base_1603378002957/work
-mkl-fft==1.2.0
-mkl-random==1.1.1
-mkl-service==2.3.0
 mypy @ file:///tmp/build/80754af9/mypy_1602520585843/work
 mypy-extensions==0.4.3
 numpy @ file:///opt/concourse/worker/volumes/live/5572694e-967a-4c0c-52cf-b53d43e72de9/volume/numpy_and_numpy_base_1603491881791/work
