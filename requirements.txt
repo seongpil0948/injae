@@ -4,7 +4,7 @@ brotlipy==0.7.0
 certifi==2020.12.5
 cffi @ file:///opt/concourse/worker/volumes/live/730e9a28-66f9-4e03-51ad-252ec8e40d81/volume/cffi_1606255126408/work
 chardet @ file:///opt/concourse/worker/volumes/live/a5a7c56b-23cb-471d-7404-f4130b8aed33/volume/chardet_1605303184529/work
-colorama==0.4.4
+colorama
 configparser==5.0.1
 crayons==0.4.0
 cryptography @ file:///opt/concourse/worker/volumes/live/27753773-e292-4a76-405d-313f3647b99f/volume/cryptography_1607636767414/work
