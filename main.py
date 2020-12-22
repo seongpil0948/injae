@@ -6,7 +6,7 @@ from crawler import Crawler
 from utils.statistics import *
 
 
-CHROME_DEBUG = True
+CHROME_DEBUG = False
 
 curr_year, curr_month, compare_year, compare_month, user = input_info()
 c = Crawler(user=user, year=curr_year, month=curr_month, req_advertise_info=True, chrome_debug=CHROME_DEBUG)
